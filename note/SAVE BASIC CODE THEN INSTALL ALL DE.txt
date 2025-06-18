@@ -269,3 +269,20 @@ export const { GET, POST, PUT } = serve({
 
 
 16- click the source button and add first commit- press commit button 
+
+And Pushto GitHub 
+
+17- login into Vercel - select login with GitHub 
+select project and import our project 
+add environment variable 
+from .env file 
+# Public Environment Variables
+NEXT_PUBLIC_CURRENCY=$
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_c2FjcmVkLWltcC05OC5jbGVyay5hY2NvdW50cy5kZXYk
+
+
+# Private Environment Variables
+CLERK_SECRET_KEY=sk_test_IuvBHxKvcxmE2K7kCDFS5WcKAKb6dJo6XllqU8kzaV
+MONGODB_URI='mongodb+srv://quickcart:Diamond_44@cluster0.ajpg9vi.mongodb.net'
+INNGEST_SIGNING_KEY='signkey-prod-753ede11363ccfbb4e54bf6383fcc393ffbcccce852fcd8a586a3ea2b5080cfb'
+INNGEST_EVENT_KEY='bJ4H9J4bhlWPmdmXM2nW7XEnI81yNzETH-znUWl92hCD9lCU8pd2SP320kuTET5VcRk-jrWGXyWi4nMLdKW29w'
