@@ -1,0 +1,268 @@
+SAVE BASIC CODE THEN INSTALL ALL DEPENDESIES :-npm install
+
+BACKEND :-
+
+CLERK WILL HELP US FOR USER LOGIN AND AUTHENTICATION 
+Signing :-  https://go.clerk.com/ZP1K3pLs
+
+1---npm install @clerk/nextjs-----------install in project 
+
+I have 1 error with my npm version after fixing error 
+
+
+2--change on .env file 
+"NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_c2FjcmVkLWltcC05OC5jbGVyay5hY2NvdW50cy5kZXYk
+
+CLERK_SECRET_KEY=sk_test_IuvBHxKvcxmE2K7kCDFS5WcKAKb6dJo6XllqU8kzaV"
+
+3---
+create "middleware.ts" in main 
+
+add:-import { clerkMiddleware } from '@clerk/nextjs/server';
+
+export default clerkMiddleware();
+
+export const config = {
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
+};
+
+4--
+
+In layout add :-
+import { ClerkProvider } from "@clerk/nextjs";    must import from this "@clerk/nextjs"
+
+
+ ClerkProvider tag 
+
+
+5-- we have login sign we want to code for a popup for to login or sign up 
+
+for to show pop up in components- navbar --- we will use openSignIn methode, we will get the methode by using use clerk 
+
+import { useClerk } from "@clerk/nextjs";
+
+  const {openSignIn}  = useClerk()
+
+
+add this "onClick={openSignIn}" in two button 
+
+After this you will get pop up 
+
+
+
+
+6---For to show user icon once logged in to our profile :-
+
+Context -AppContext:-
+
+const {user} = useUser()        -------------for to get user data
+
+const value = {
+        user,
+7---navabar
+
+add user in this 
+
+const { isSeller, router, user } = useAppContext();
+
+change button like this :-
+
+{ 
+        user 
+        ? <>
+        <UserButton/>
+        </>  
+        : <button onClick={openSignIn} className="flex items-center gap-2 hover:text-gray-900 transition">
+          <Image src={assets.user_icon} alt="user icon" />
+          Account
+        </button>
+        }
+
+
+Once login it will show 
+
+ { 
+        user 
+        ? <>
+        <UserButton>
+          <UserButton.MenuItems>
+            <UserButton.Action label="Cart"  labelIcon ={<CartIcon/>} onClick ={()=> router.push('/cart')} />
+          </UserButton.MenuItems>
+           <UserButton.MenuItems>
+            <UserButton.Action label="My Orders"  labelIcon ={<BagIcon/>} onClick ={()=> router.push('/my-orders')} />
+          </UserButton.MenuItems>
+          </UserButton>
+        </>  
+        : <button onClick={openSignIn} className="flex items-center gap-2 hover:text-gray-900 transition">
+          <Image src={assets.user_icon} alt="user icon" />
+          Account
+        </button>
+        }
+
+
+
+8 _Change in mobile friendly also :-
+
+
+
+NEXT STEP TO CREATE API 
+
+npm i mongoose
+ 
+
+https://cloud.mongodb.com/   --- create new project 
+
+New cluster 
+
+mangoose
+
+copy the code,
+
+mongodb+srv://quickcart:Diamond_44@cluster0.ajpg9vi.mongodb.net  ( add in .env file );;;;;;;;
+
+9:-For to connect the project with mongodb ....config-db.js
+
+
+then go to clerk website 
+
+and configure -webhook- add end point -{ there 2 methodes in this project we are using ingest  methode}
+
+.env file (INNGEST_SIGNING_KEY=''
+INNGEST_EVENT_KEY='')
+for to get this values signin inngestwebsite.... then select..
+
+9.1--event key   --------then will produce default key /..event key then add to .env file "bJ4H9J4bhlWPmdmXM2nW7XEnI81yNzETH-znUWl92hCD9lCU8pd2SP320kuTET5VcRk-jrWGXyWi4nMLdKW29w"
+9.2--select signing key--------  signkey-prod-753ede11363ccfbb4e54bf6383fcc393ffbcccce852fcd8a586a3ea2b5080cfb------------add to .env file 
+
+10--install ingex packaged aan 
+inn vs code :- npm install ingest
+
+run our website ( npm run dev )-----
+then ingest website help and feedback --->ingest documentation
+
+
+10- create config- inngest.js
+
+add this code from INNGEST website in  ingest.js :-
+
+
+import { Inngest } from "inngest";
+
+// Create a client to send and receive events
+export const inngest = new Inngest({ id: "my-app" });
+
+
+
+11- next want to create function for that go to clerk dashboard :- configure -> webhook-> select inngest->and connect ingest account after approval will get a URL.. then create ... so we just create clerk webhook 
+
+then change inngest "     async ({ event }) => {
+  const { id, first_name, last_name, email_addresses, image_url } = event.data;
+  const userData = {
+    _id:id,
+    email:email_addresses[0].email_address,
+    name:first_name +' '+last_name,
+    imageUrl:image_url"
+
+
+
+12- then want to save this datas in to DB 
+
+import { Inngest } from "inngest";
+import connectDB from "./db";
+import { User } from "@clerk/nextjs/dist/types/server";
+
+// Create a client to send and receive events
+export const inngest = new Inngest({ id: "quickcart-next" });
+//Inngest Function to save user data to database 
+export const syncUserCreation = inngest.createFunction (
+    {
+        id:'sync-user-from-clerk'
+    },
+    {event:'clerk/user.created'},
+       async ({ event }) => {
+  const { id, first_name, last_name, email_addresses, image_url } = event.data;
+  const userData = {
+    _id:id,
+    email:email_addresses[0].email_address,
+    name:first_name +' '+last_name,
+    imageUrl:image_url
+  }
+  // You can now use these variables
+  // e.g., console.log(first_name);
+  await connectDB
+  await User.create(userData)
+}
+
+
+)
+
+
+
+13-Next function for to update the user information 
+
+//Inngets function to update user data in db 
+
+export const syncUserUpdation = inngest.createFunction(
+  {id:'update-user-from-clerk'} ,
+  {event:'clerk/user.updated' },
+  async ({event})=>{
+      const { id, first_name, last_name, email_addresses, image_url } = event.data;
+  const userData = {
+    _id:id,
+    email:email_addresses[0].email_address,
+    name:first_name +' '+last_name,
+    imageUrl:image_url
+  }
+  await connectDB()
+  await User.findByIdAndUpdate(id,userData)
+  }
+
+)
+14:- dalete:-
+
+//Inngest function to dalate user from db 
+export const syncUserDeletion = inngest.createFunction(
+   {
+      id: 'delete-user-with-clerk'
+   },{event:'clerk/user.deleted' },
+   async ({event}) =>{
+    const {id} =event.data
+    await connectDB()
+    await User.findByIdAndDelete(id)
+   }
+)
+
+15: create new folder API inside the app folder inside that ingest folder within that route.js file
+
+take code from ingest website 
+
+import { serve } from "inngest/next";
+import { inngest } from "../../../inngest/client";
+
+// Create an API that serves zero functions
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: [
+    /* your functions will be passed here later! */
+  ],
+});
+
+change above code like this 
+
+import { serve } from "inngest/next";
+import { inngest, syncUserCreation, syncUserDeletion, syncUserUpdation } from "@/config/inngest";
+
+// Create an API that serves zero functions
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: [
+    syncUserCreation,
+    syncUserUpdation,
+    syncUserDeletion
+  ],
+});
